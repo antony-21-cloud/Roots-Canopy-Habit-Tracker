@@ -1,0 +1,475 @@
+/* Reset and base */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    background: #f0f4f0;
+    color: #1a2e1a;
+    line-height: 1.6;
+    padding-bottom: 80px;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Welcome Screen */
+.welcome-screen {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.welcome-screen h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+}
+
+.welcome-screen p {
+    color: #4a6a4a;
+    margin-bottom: 10px;
+}
+
+.btn-primary {
+    display: inline-block;
+    background: #2d5a2d;
+    color: white;
+    padding: 14px 40px;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 20px;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+    transition: background 0.3s;
+}
+
+.btn-primary:hover {
+    background: #1a3a1a;
+}
+
+.btn-secondary {
+    background: #e8ece8;
+    color: #1a2e1a;
+    padding: 10px 24px;
+    border-radius: 20px;
+    border: 1px solid #c0d0c0;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+/* Header */
+header {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+header h1 {
+    font-size: 1.8rem;
+    color: #1a3a1a;
+}
+
+header p {
+    color: #4a6a4a;
+    margin-top: 4px;
+}
+
+.stats {
+    display: flex;
+    gap: 20px;
+    margin-top: 12px;
+    font-size: 0.9rem;
+    color: #4a6a4a;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e8ece8;
+    border-radius: 4px;
+    margin-top: 12px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #2d5a2d, #4a8a4a);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+}
+
+/* Current Station */
+.current-station {
+    background: white;
+    padding: 24px;
+    border-radius: 16px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+
+.current-station h2 {
+    font-size: 1.4rem;
+    color: #1a3a1a;
+}
+
+.current-station > p {
+    color: #4a6a4a;
+    margin: 4px 0 16px 0;
+}
+
+/* Tree Cards */
+.trees-container {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 20px;
+}
+
+.tree-card {
+    background: #f8faf8;
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid #e0ece0;
+}
+
+.tree-card h3 {
+    font-size: 1.2rem;
+    margin-bottom: 12px;
+}
+
+.tree-visual {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: white;
+    border-radius: 10px;
+}
+
+.tree-display {
+    font-size: 3.5rem;
+    min-width: 80px;
+    text-align: center;
+}
+
+.tree-stats {
+    flex: 1;
+}
+
+.tree-stats span {
+    display: block;
+    font-size: 0.9rem;
+    color: #4a6a4a;
+}
+
+.growth-bar {
+    width: 100%;
+    height: 6px;
+    background: #e8ece8;
+    border-radius: 3px;
+    margin-top: 6px;
+    overflow: hidden;
+}
+
+.growth-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #4a8a4a, #6aaa6a);
+    border-radius: 3px;
+    transition: width 0.5s ease;
+}
+
+/* Habits */
+.habits-list {
+    margin-top: 12px;
+}
+
+.habit-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    transition: opacity 0.3s;
+}
+
+.habit-item.completed {
+    opacity: 0.7;
+}
+
+.habit-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.habit-info strong {
+    font-size: 1rem;
+}
+
+.habit-info .duration,
+.habit-info .frequency {
+    font-size: 0.8rem;
+    color: #4a6a4a;
+    background: #e8ece8;
+    padding: 2px 10px;
+    border-radius: 12px;
+}
+
+.habit-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.habit-checkbox {
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    accent-color: #2d5a2d;
+}
+
+.reason-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #8a6a3a;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.reason-btn:hover {
+    background: #f0ece8;
+}
+
+.reason-text {
+    font-size: 0.85rem;
+    color: #6a8a6a;
+    font-style: italic;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Bottom Navigation */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+    border-top: 1px solid #e0ece0;
+}
+
+.bottom-nav a {
+    text-decoration: none;
+    color: #4a6a4a;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+    transition: all 0.3s;
+}
+
+.bottom-nav a:hover {
+    background: #e8ece8;
+}
+
+.bottom-nav a.active {
+    background: #2d5a2d;
+    color: white;
+}
+
+.bottom-nav .nav-create {
+    background: #2d5a2d;
+    color: white;
+}
+
+.bottom-nav .nav-create:hover {
+    background: #1a3a1a;
+}
+
+/* Modal */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 32px;
+    border-radius: 16px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+.modal-content h3 {
+    font-size: 1.4rem;
+    margin-bottom: 4px;
+}
+
+.modal-hint {
+    color: #6a8a6a;
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+}
+
+.modal-content textarea {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #d0e0d0;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-family: inherit;
+    resize: vertical;
+}
+
+.modal-content textarea:focus {
+    outline: none;
+    border-color: #2d5a2d;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+    justify-content: flex-end;
+}
+
+/* Toast */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #1a3a1a;
+    color: white;
+    padding: 16px 24px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    z-index: 2000;
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .habit-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .habit-actions {
+        width: 100%;
+        justify-content: flex-start;
+    }
+    
+    .tree-visual {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .bottom-nav a {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+}
+
+/* Danger Buttons */
+.btn-danger {
+    background: #8a2a2a;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn-danger:hover {
+    background: #6a1a1a;
+}
+
+.btn-delete-small {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.3s;
+    color: #8a2a2a;
+}
+
+.btn-delete-small:hover {
+    background: #fde8e8;
+}
+
+.flash-messages {
+    margin-bottom: 16px;
+}
+
+.flash-message {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 8px;
+    font-weight: 500;
+}
+
+.flash-message.error {
+    background: #fde8e8;
+    color: #8a3a3a;
+    border: 1px solid #f5d0d0;
+}
+
+.flash-message.success {
+    background: #e8f5e8;
+    color: #2d5a2d;
+    border: 1px solid #d0e8d0;
+}
+
+.flash-message.info {
+    background: #e8f0fd;
+    color: #2d4a8a;
+    border: 1px solid #d0dff5;
+}

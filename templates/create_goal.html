@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Your Goal</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="wizard-container">
+            <div class="wizard-steps">
+                <div class="step active">1. Goal</div>
+                <div class="step">2. Trees</div>
+                <div class="step">3. Habits</div>
+            </div>
+            
+            <div class="wizard-content">
+                <h1>🎯 What's Your Long-Term Goal?</h1>
+                <p class="subtitle">This is the mountain you're climbing toward.</p>
+                
+                <form method="POST" class="form">
+                    <div class="form-group">
+                        <label for="title">Goal Title</label>
+                        <input type="text" id="title" name="title" required 
+                               placeholder="e.g., Become a Security Architect" autofocus>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="4" 
+                                  placeholder="Describe what this goal means to you..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="target_years">Target Years</label>
+                        <input type="number" id="target_years" name="target_years" 
+                               value="10" min="5" max="15">
+                        <small>How many years do you want to achieve this in?</small>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary">🌱 Plant My Forest →</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .wizard-container {
+            width: 100%;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .wizard-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+            padding: 0 10px;
+        }
+        
+        .step {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background: #e8ece8;
+            color: #6a8a6a;
+            font-weight: 500;
+        }
+        
+        .step.active {
+            background: #4a8a4a;
+            color: white;
+            box-shadow: 0 0 0 3px #b0d0b0;
+        }
+        
+        .step.completed {
+            background: #2d5a2d;
+            color: white;
+        }
+        
+        .wizard-content h1 {
+            margin: 0 0 4px 0;
+            color: #1a3a1a;
+            font-size: 1.8rem;
+        }
+        
+        .subtitle {
+            color: #4a6a4a;
+            margin: 0 0 24px 0;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #1a3a1a;
+        }
+        
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #d0e0d0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #2d5a2d;
+        }
+        
+        .form-group small {
+            display: block;
+            color: #6a8a6a;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            background: #2d5a2d;
+            color: white;
+            padding: 14px 28px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background: #1a3a1a;
+        }
+    </style>
+</body>
+</html>

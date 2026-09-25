@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ goal.title }} - Roots & Canopy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <!-- Goal Header -->
+        <div class="goal-header">
+            <div class="goal-header-left">
+                <h1>🎯 {{ goal.title }}</h1>
+                <p class="goal-description">{{ goal.description or "No description yet." }}</p>
+                <div class="goal-meta">
+                    <span>📅 Created: {{ goal.created_at.strftime('%b %d, %Y') }}</span>
+                    <span>🌳 {{ trees|length }} tree(s)</span>
+                    <span class="goal-status {% if goal.is_active %}active{% else %}completed{% endif %}">
+                        {% if goal.is_active %}Active{% else %}Completed{% endif %}
+                    </span>
+                </div>
+            </div>
+            <div class="goal-header-right">
+                <div class="goal-progress-ring">
+                    <div class="progress-circle">
+                        {% set total_trees = trees|length %}
+                        {% set completed_trees = trees|selectattr('is_completed')|list|length %}
+                        {% set progress = (completed_trees / total_trees * 100) if total_trees > 0 else 0 %}
+                        <span class="progress-number">{{ progress|round|int }}%</span>
+                        <span class="progress-label">Complete</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="goal-actions">
+            <a href="{{ url_for('add_tree_to_goal', goal_id=goal.id) }}" class="btn-primary">
+                🌳 Add Tree
+            </a>
+            <a href="{{ url_for('add_habit_standalone') }}" class="btn-secondary">
+                💧 Add Habit
+            </a>
+            <a href="{{ url_for('home') }}" class="btn-secondary">
+                ← Back to Home
+            </a>
+            <button onclick="confirmDeleteGoal({ goal_id }, '{{ goal.title }}')" 
+                    class="btn-danger">
+                🗑️ Delete Goal
+            </button>
+        </div>
+
+        <!-- Trees Section -->
+        <div class="trees-section">
+            <h2>🌳 Trees in This Goal</h2>
+            
+            {% if trees %}
+                <div class="trees-grid">
+                    {% for tree in trees %}
+                    <div class="tree-card">
+                        <div class="tree-card-header">
+                            <span class="tree-emoji-large">{{ tree.get_stage_emoji() }}</span>
+                            <div class="tree-info">
+                                <h3>{{ tree.name }}</h3>
+                                <span class="tree-stage-badge">{{ tree.get_stage_name() }}</span>
+                            </div>
+                            <div class="tree-card-actions">
+                                <a href="{{ url_for('view_tree', tree_id=tree.id) }}" class="btn-view">View</a>
+                            </div>
+                        </div>
+                        
+                        <p class="tree-description">{{ tree.description or "No description yet." }}</p>
+                        
+                        <div class="tree-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: {{ tree.get_progress() }}%;"></div>
+                            </div>
+                            <span class="progress-text">{{ tree.get_progress()|round|int }}%</span>
+                        </div>
+                        
+                        <div class="tree-meta">
+                            <span>🌱 Planted: {{ tree.get_planted_date_formatted() }}</span>
+                            <span>📅 {{ tree.get_days_since_planted() }} days growing</span>
+                            <span>💧 {{ tree.habits|length }} habit(s)</span>
+                        </div>
+                        
+                        <div class="tree-habits-preview">
+                            {% if tree.habits %}
+                                <span class="habit-count">
+                                    {% for habit in tree.habits[:3] %}
+                                        <span class="habit-tag">💧 {{ habit.name }}</span>
+                                    {% endfor %}
+                                    {% if tree.habits|length > 3 %}
+                                        <span class="habit-more">+{{ tree.habits|length - 3 }} more</span>
+                                    {% endif %}
+                                </span>
+                            {% else %}
+                                <span class="habit-empty">No habits yet. Add some!</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state">
+                    <p>🌱 No trees planted yet in this goal.</p>
+                    <a href="{{ url_for('add_tree_to_goal', goal_id=goal.id) }}" class="btn-primary">
+                        🌳 Plant Your First Tree
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Navigation -->
+        <nav class="bottom-nav">
+            <a href="{{ url_for('home') }}">🏠 Home</a>
+            <a href="{{ url_for('path_view') }}">🗺️ Path</a>
+            <a href="{{ url_for('habits_view') }}">✅ Habits</a>
+            <a href="{{ url_for('profile') }}">👤 Profile</a>
+            <a href="{{ url_for('create_goal') }}" class="nav-create">➕ New Goal</a>
+        </nav>
+    </div>
+
+    <style>
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        /* Goal Header */
+        .goal-header {
+            background: white;
+            padding: 24px 28px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .goal-header-left h1 {
+            margin: 0;
+            color: #1a3a1a;
+            font-size: 1.8rem;
+        }
+
+        .goal-description {
+            color: #4a6a4a;
+            margin: 4px 0 8px 0;
+        }
+
+        .goal-meta {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 0.9rem;
+            color: #6a8a6a;
+        }
+
+        .goal-status {
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+
+        .goal-status.active {
+            background: #e8f5e8;
+            color: #2d5a2d;
+        }
+
+        .goal-status.completed {
+            background: #e8ece8;
+            color: #4a6a4a;
+        }
+
+        .goal-header-right {
+            flex-shrink: 0;
+        }
+
+        .progress-circle {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #f0f4f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 4px solid #2d5a2d;
+            position: relative;
+        }
+
+        .progress-number {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #1a3a1a;
+            line-height: 1;
+        }
+
+        .progress-label {
+            font-size: 0.6rem;
+            color: #6a8a6a;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Action Buttons */
+        .goal-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 24px;
+        }
+
+        .goal-actions .btn-primary {
+            background: #2d5a2d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .goal-actions .btn-primary:hover {
+            background: #1a3a1a;
+        }
+
+        .goal-actions .btn-secondary {
+            background: #e8ece8;
+            color: #1a3a1a;
+            padding: 10px 20px;
+            border: 1px solid #c0d0c0;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.95rem;
+        }
+
+        .goal-actions .btn-secondary:hover {
+            background: #d0ddd0;
+        }
+
+        .goal-actions .btn-danger {
+            background: #8a2a2a;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 0.95rem;
+        }
+
+        .goal-actions .btn-danger:hover {
+            background: #6a1a1a;
+        }
+
+        /* Trees Section */
+        .trees-section {
+            background: white;
+            padding: 24px 28px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .trees-section h2 {
+            margin: 0 0 20px 0;
+            color: #1a3a1a;
+        }
+
+        .trees-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+        }
+
+        .tree-card {
+            background: #f8faf8;
+            padding: 16px 20px;
+            border-radius: 12px;
+            border: 1px solid #e0ece0;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .tree-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+        }
+
+        .tree-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .tree-emoji-large {
+            font-size: 2rem;
+        }
+
+        .tree-info h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: #1a3a1a;
+        }
+
+        .tree-stage-badge {
+            font-size: 0.75rem;
+            color: #4a6a4a;
+            background: #e8ece8;
+            padding: 2px 10px;
+            border-radius: 10px;
+        }
+
+        .tree-card-actions {
+            margin-left: auto;
+        }
+
+        .btn-view {
+            background: #2d5a2d;
+            color: white;
+            padding: 4px 14px;
+            border-radius: 6px;
+            text-decoration: none;
+            font-size: 0.8rem;
+        }
+
+        .btn-view:hover {
+            background: #1a3a1a;
+        }
+
+        .tree-description {
+            color: #4a6a4a;
+            font-size: 0.9rem;
+            margin: 0 0 10px 0;
+        }
+
+        .tree-progress {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .tree-progress .progress-bar {
+            flex: 1;
+            height: 6px;
+            background: #e8ece8;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .tree-progress .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2d5a2d, #6aaa6a);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .tree-progress .progress-text {
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #2d5a2d;
+            min-width: 36px;
+            text-align: right;
+        }
+
+        .tree-meta {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 0.8rem;
+            color: #6a8a6a;
+            margin-bottom: 8px;
+        }
+
+        .tree-habits-preview {
+            margin-top: 4px;
+        }
+
+        .habit-tag {
+            display: inline-block;
+            background: white;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            color: #1a3a1a;
+            border: 1px solid #d0e0d0;
+            margin: 2px 4px 2px 0;
+        }
+
+        .habit-more {
+            font-size: 0.75rem;
+            color: #6a8a6a;
+        }
+
+        .habit-empty {
+            font-size: 0.8rem;
+            color: #6a8a6a;
+            font-style: italic;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #4a6a4a;
+        }
+
+        .empty-state .btn-primary {
+            display: inline-block;
+            margin-top: 12px;
+            background: #2d5a2d;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .empty-state .btn-primary:hover {
+            background: #1a3a1a;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #e0ece0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+            z-index: 100;
+        }
+
+        .bottom-nav a {
+            text-decoration: none;
+            color: #4a6a4a;
+            font-size: 0.85rem;
+            padding: 6px 16px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .bottom-nav a:hover {
+            background: #e8ece8;
+        }
+
+        .bottom-nav .nav-create {
+            background: #2d5a2d;
+            color: white;
+        }
+
+        .bottom-nav .nav-create:hover {
+            background: #1a3a1a;
+        }
+
+        @media (max-width: 700px) {
+            .goal-header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .goal-header-left h1 {
+                font-size: 1.4rem;
+            }
+
+            .goal-meta {
+                justify-content: center;
+            }
+
+            .goal-header-right {
+                align-self: center;
+            }
+
+            .progress-circle {
+                width: 70px;
+                height: 70px;
+            }
+
+            .progress-number {
+                font-size: 1.2rem;
+            }
+
+            .goal-actions {
+                justify-content: center;
+            }
+
+            .trees-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tree-card-header {
+                flex-wrap: wrap;
+            }
+
+            .tree-card-actions {
+                margin-left: 0;
+            }
+
+            .bottom-nav a {
+                font-size: 0.7rem;
+                padding: 4px 10px;
+            }
+        }
+    </style>
+
+    <!-- Delete Confirmation Script -->
+    <script>
+        function confirmDeleteGoal(goalId, goalTitle) {
+            if (confirm(`⚠️ Are you sure you want to delete the goal "${goalTitle}"?\n\nThis will also delete ALL trees and habits in this goal. This action cannot be undone.`)) {
+                fetch(`/goal/${goalId}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        window.location.href = data.redirect;
+                    } else {
+                        alert('❌ Error deleting goal: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('❌ An error occurred. Please try again.');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

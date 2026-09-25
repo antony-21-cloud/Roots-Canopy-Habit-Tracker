@@ -1,0 +1,21 @@
+<div class="tree-actions">
+    <a href="{{ url_for('add_habit_to_tree_single', tree_id=tree.id) }}" class="btn-primary">
+        💧 Add Habit to This Tree
+    </a>
+    <a href="{{ url_for('view_goal', goal_id=tree.goal_id) }}" class="btn-secondary">
+        ← Back to Goal
+    </a>
+</div>
+<div class="tree-actions">
+    <a href="{{ url_for('add_habit_to_tree_single', tree_id=tree.id) }}" class="btn-primary">
+        💧 Add Habit to This Tree
+    </a>
+    <a href="{{ url_for('view_goal', goal_id=tree.goal_id) }}" class="btn-secondary">
+        ← Back to Goal
+    </a>
+    <!-- DELETE TREE BUTTON -->
+    <button onclick="confirmDeleteTree({ tree_id }, '{{ tree.name }}')" 
+            class="btn-danger">
+        🗑️ Delete Tree
+    </button>
+</div>

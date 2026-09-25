@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History - Missed Habits</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>📜 Missed Habits & Reasons</h1>
+        <p>Learn from your setbacks. Every missed habit is a lesson.</p>
+        
+        <div class="stats-bar">
+            <div class="stat">
+                <span class="stat-number">{{ total_missed }}</span>
+                <span class="stat-label">Total Missed Habits</span>
+            </div>
+        </div>
+        
+        {% if common_reasons %}
+        <div class="common-reasons">
+            <h3>Most Common Reasons</h3>
+            <ul>
+                {% for reason, count in common_reasons %}
+                <li>
+                    <span class="reason-text">{{ reason }}</span>
+                    <span class="reason-count">{{ count }} times</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        
+        <div class="log-list">
+            <h3>Recent Missed Habits</h3>
+            {% if missed_logs %}
+                {% for log in missed_logs %}
+                <div class="log-item">
+                    <div class="log-date">{{ log.date.strftime('%B %d, %Y') }}</div>
+                    <div class="log-habit">💭 {{ log.habit.name }}</div>
+                    <div class="log-reason">"{{ log.reason }}"</div>
+                    <div class="log-tree">🌱 {{ log.habit.tree.name }}</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p class="empty">No missed habits yet. Keep up the great work! 🌟</p>
+            {% endif %}
+        </div>
+        
+        <nav class="bottom-nav">
+            <a href="{{ url_for('index') }}">🏠 Home</a>
+            <a href="{{ url_for('path_view') }}">🗺️ Path</a>
+            <a href="{{ url_for('view_forest') }}">🌳 Forest</a>
+            <a href="{{ url_for('history') }}" class="active">📜 History</a>
+            <a href="{{ url_for('create_goal') }}" class="nav-create">➕ New Goal</a>
+        </nav>
+    </div>
+    
+    <style>
+        .stats-bar {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin: 20px 0;
+            display: flex;
+            gap: 40px;
+        }
+        .stat {
+            text-align: center;
+        }
+        .stat-number {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #2d5a2d;
+        }
+        .stat-label {
+            color: #4a6a4a;
+            font-size: 0.9rem;
+        }
+        .common-reasons {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin: 20px 0;
+        }
+        .common-reasons ul {
+            list-style: none;
+            padding: 0;
+        }
+        .common-reasons li {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #e8ece8;
+        }
+        .reason-count {
+            background: #e8ece8;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+        }
+        .log-list {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin: 20px 0 80px 0;
+        }
+        .log-item {
+            padding: 12px;
+            border-bottom: 1px solid #e8ece8;
+        }
+        .log-item:last-child {
+            border-bottom: none;
+        }
+        .log-date {
+            font-size: 0.8rem;
+            color: #6a8a6a;
+        }
+        .log-habit {
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .log-reason {
+            color: #6a4a3a;
+            font-style: italic;
+            padding: 4px 0;
+        }
+        .log-tree {
+            font-size: 0.8rem;
+            color: #4a6a4a;
+        }
+        .empty {
+            text-align: center;
+            color: #6a8a6a;
+            padding: 30px 0;
+            font-size: 1.1rem;
+        }
+    </style>
+</body>
+</html>

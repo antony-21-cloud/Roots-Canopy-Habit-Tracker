@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Roots & Canopy - Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        {% if not has_user %}
+        <!-- Welcome Screen -->
+        <div class="welcome-screen">
+            <h1>🌱 Welcome to Roots & Canopy</h1>
+            <p>Your journey to becoming your best self starts here.</p>
+            <a href="{{ url_for('create_profile') }}" class="btn-primary">👤 Create Your Profile</a>
+        </div>
+        {% else %}
+        
+        <!-- Header with User -->
+        <header class="home-header">
+            <div class="user-greeting">
+                <div class="avatar-small">{{ user.name[0]|upper }}</div>
+                <div>
+                    <h1>👋 Welcome back, {{ user.name }}!</h1>
+                    <p>🌱 Let's water your trees today.</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="{{ url_for('profile') }}" class="btn-profile">👤 Profile</a>
+            </div>
+        </header>
+        
+        <!-- OVERALL PROGRESS -->
+        <div class="overall-progress">
+            <div class="progress-header">
+                <span>Overall Journey Progress</span>
+                <span class="progress-percent">
+                    {% set total_progress = 0 %}
+                    {% set goal_count = 0 %}
+                    {% for g in goals %}
+                        {% set total_progress = total_progress + g.progress %}
+                        {% set goal_count = goal_count + 1 %}
+                    {% endfor %}
+                    {{ (total_progress / goal_count)|round|int if goal_count > 0 else 0 }}%
+                </span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ overall_progress }}%;"></div> <!-- ignore -->
+            </div>
+        </div>
+        
+        <!-- GOALS SECTION -->
+        <section class="goals-section">
+            <h2>🎯 Your Goals</h2>
+            <div class="goals-grid">
+                {% for g in goals %}
+                <div class="goal-card">
+                    <div class="goal-header">
+                        <span class="goal-icon">🏔️</span>
+                        <h3>{{ g.goal.title }}</h3>
+                    </div>
+                    <div class="goal-progress">
+                        <div class="goal-progress-bar">
+                            <div class="goal-progress-fill" style="width: {{ g.progress }}%;"></div>
+                        </div>
+                        <span class="goal-progress-text">{{ g.progress|round|int }}%</span>
+                    </div>
+                    <div class="goal-stats">
+                        <span>{{ g.completed_stations }}/{{ g.total_stations }} stations</span>
+                        <span>{{ g.trees|length }} trees</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        
+        <!-- STATIONS SECTION -->
+        <section class="stations-section">
+            <h2>📍 Your Stations</h2>
+            <div class="stations-list">
+                {% for g in goals %}
+                    {% for station in g.stations %}
+                    <div class="station-item">
+                        <div class="station-status">
+                            {% if station.is_completed %}
+                            ✅
+                            {% else %}
+                            🔄
+                            {% endif %}
+                        </div>
+                        <div class="station-info">
+                            <span class="station-name">{{ station.title }}</span>
+                            <span class="station-goal">{{ g.goal.title }}</span>
+                        </div>
+                        <div class="station-progress">
+                            {% set tree_count = station.trees|length %}
+                            {% set completed_tree_count = station.trees|selectattr('is_completed')|list|length %}
+                            {{ completed_tree_count }}/{{ tree_count }} trees
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% endfor %}
+            </div>
+        </section>
+        
+        <!-- HABITS SECTION -->
+        <section class="habits-section">
+            <h2>💧 Your Habits</h2>
+            <div class="habits-list">
+                {% for item in habits %}
+                <div class="habit-card">
+                    <div class="habit-header" onclick="toggleHabitHistory('habit-{{ item.habit.id }}')">
+                        <div class="habit-check-wrapper">
+                            <input type="checkbox" class="habit-checkbox" 
+                                   data-log-id="{{ item.habit.logs[0].id if item.habit.logs else '' }}"
+                                   {% if item.habit.logs and item.habit.logs[0].completed %}checked{% endif %}>
+                            <span class="habit-name">{{ item.habit.name }}</span>
+                        </div>
+                        <div class="habit-stats">
+                            <span class="habit-rate">{{ item.completion_rate|round|int }}%</span>
+                            <span class="habit-toggle">▼</span>
+                        </div>
+                    </div>
+                    <div class="habit-history" id="habit-{{ item.habit.id }}" style="display: none;">
+                        <div class="history-grid">
+                            {% for log in item.logs[:30] %}
+                            <div class="history-day {% if log.completed %}done{% else %}missed{% endif %}" 
+                                 title="{{ log.date.strftime('%b %d') }}{% if not log.completed and log.reason %}: {{ log.reason }}{% endif %}">
+                                {{ log.date.strftime('%d') }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="history-stats">
+                            <span>✅ {{ item.completed_logs }} done</span>
+                            <span>❌ {{ item.total_logs - item.completed_logs }} missed</span>
+                            <span class="history-toggle-btn" onclick="loadMoreHistory('{{ item.habit.id }}')">Load more...</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        
+        <!-- Navigation -->
+        <nav class="bottom-nav">
+            <a href="{{ url_for('home') }}" class="active">🏠 Home</a>
+            <a href="{{ url_for('path_view') }}">🗺️ Path</a>
+            <a href="{{ url_for('view_forest') }}">🌳 Forest</a>
+            <a href="{{ url_for('history') }}">📜 History</a>
+            <a href="{{ url_for('profile') }}">👤 Profile</a>
+            <a href="{{ url_for('create_goal') }}" class="nav-create">➕ New Goal</a>
+        </nav>
+        
+        {% endif %}
+    </div>
+
+    <style>
+        .home-header {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        
+        .user-greeting {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        
+        .avatar-small {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #2d5a2d, #4a8a4a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        
+        .user-greeting h1 {
+            font-size: 1.4rem;
+            margin: 0;
+            color: #1a3a1a;
+        }
+        
+        .user-greeting p {
+            color: #4a6a4a;
+            margin: 0;
+        }
+        
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .btn-profile {
+            background: #e8ece8;
+            padding: 10px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            color: #1a3a1a;
+            font-size: 0.9rem;
+            border: 1px solid #c0d0c0;
+            transition: all 0.3s;
+        }
+        
+        .btn-profile:hover {
+            background: #d0ddd0;
+        }
+        
+        .overall-progress {
+            background: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #4a6a4a;
+        }
+        
+        .progress-percent {
+            font-weight: bold;
+            color: #2d5a2d;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e8ece8;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2d5a2d, #4a8a4a);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .goals-section {
+            margin-bottom: 24px;
+        }
+        
+        .goals-section h2 {
+            margin-bottom: 12px;
+            color: #1a3a1a;
+        }
+        
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+        
+        .goal-card {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border-left: 4px solid #2d5a2d;
+        }
+        
+        .goal-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .goal-header h3 {
+            font-size: 1rem;
+            margin: 0;
+            color: #1a3a1a;
+        }
+        
+        .goal-progress {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .goal-progress-bar {
+            flex: 1;
+            height: 8px;
+            background: #e8ece8;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .goal-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2d5a2d, #6aaa6a);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .goal-progress-text {
+            font-weight: bold;
+            font-size: 0.9rem;
+            color: #2d5a2d;
+            min-width: 40px;
+            text-align: right;
+        }
+        
+        .goal-stats {
+            display: flex;
+            gap: 16px;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            color: #6a8a6a;
+        }
+        
+        .stations-section {
+            margin-bottom: 24px;
+        }
+        
+        .stations-section h2 {
+            margin-bottom: 12px;
+            color: #1a3a1a;
+        }
+        
+        .stations-list {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .station-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 12px 20px;
+            border-bottom: 1px solid #e8ece8;
+        }
+        
+        .station-item:last-child {
+            border-bottom: none;
+        }
+        
+        .station-status {
+            font-size: 1.2rem;
+        }
+        
+        .station-info {
+            flex: 1;
+        }
+        
+        .station-name {
+            font-weight: bold;
+            color: #1a3a1a;
+        }
+        
+        .station-goal {
+            font-size: 0.8rem;
+            color: #6a8a6a;
+            margin-left: 8px;
+        }
+        
+        .station-progress {
+            font-size: 0.85rem;
+            color: #4a6a4a;
+        }
+        
+        .habits-section {
+            margin-bottom: 80px;
+        }
+        
+        .habits-section h2 {
+            margin-bottom: 12px;
+            color: #1a3a1a;
+        }
+        
+        .habit-card {
+            background: white;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        
+        .habit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            cursor: pointer;
+        }
+        
+        .habit-header:hover {
+            background: #f8faf8;
+        }
+        
+        .habit-check-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .habit-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #2d5a2d;
+        }
+        
+        .habit-name {
+            font-weight: 500;
+        }
+        
+        .habit-stats {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .habit-rate {
+            font-size: 0.85rem;
+            color: #2d5a2d;
+            font-weight: bold;
+        }
+        
+        .habit-toggle {
+            color: #6a8a6a;
+            transition: transform 0.3s;
+        }
+        
+        .habit-toggle.open {
+            transform: rotate(180deg);
+        }
+        
+        .habit-history {
+            padding: 0 20px 20px 20px;
+        }
+        
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(31, 1fr);
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+        
+        .history-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            border-radius: 4px;
+            background: #f0f4f0;
+            color: #6a8a6a;
+            cursor: help;
+        }
+        
+        .history-day.done {
+            background: #2d5a2d;
+            color: white;
+        }
+        
+        .history-day.missed {
+            background: #d4a0a0;
+            color: white;
+        }
+        
+        .history-stats {
+            display: flex;
+            gap: 16px;
+            font-size: 0.85rem;
+            color: #4a6a4a;
+            flex-wrap: wrap;
+        }
+        
+        .history-toggle-btn {
+            color: #2d5a2d;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #e0ece0;
+        }
+        
+        .bottom-nav a {
+            text-decoration: none;
+            color: #4a6a4a;
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+        
+        .bottom-nav a:hover {
+            background: #e8ece8;
+        }
+        
+        .bottom-nav a.active {
+            background: #2d5a2d;
+            color: white;
+        }
+        
+        .bottom-nav .nav-create {
+            background: #2d5a2d;
+            color: white;
+        }
+        
+        .bottom-nav .nav-create:hover {
+            background: #1a3a1a;
+        }
+        
+        .welcome-screen {
+            text-align: center;
+            padding: 60px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .welcome-screen h1 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            color: #1a3a1a;
+        }
+        
+        .welcome-screen p {
+            color: #4a6a4a;
+            margin-bottom: 10px;
+        }
+        
+        .btn-primary {
+            display: inline-block;
+            background: #2d5a2d;
+            color: white;
+            padding: 14px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background 0.3s;
+        }
+        
+        .btn-primary:hover {
+            background: #1a3a1a;
+        }
+        
+        @media (max-width: 600px) {
+            .goals-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .history-grid {
+                grid-template-columns: repeat(15, 1fr);
+            }
+            
+            .station-item {
+                flex-wrap: wrap;
+            }
+            
+            .bottom-nav a {
+                font-size: 0.7rem;
+                padding: 4px 8px;
+            }
+        }
+    </style>
+    
+    <script>
+        function toggleHabitHistory(id) {
+            const element = document.getElementById(id);
+            const toggle = element.parentElement.querySelector('.habit-toggle');
+            if (element.style.display === 'none') {
+                element.style.display = 'block';
+                toggle.classList.add('open');
+            } else {
+                element.style.display = 'none';
+                toggle.classList.remove('open');
+            }
+        }
+        
+        function loadMoreHistory(habitId) {
+            alert('Loading more history... (This will fetch older data)');
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('.habit-checkbox');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const logId = this.dataset.logId;
+                    if (logId) {
+                        fetch(`/toggle_habit/${logId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify({
+                                completed: this.checked
+                            })
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                if (data.stage_changed) {
+                                    location.reload();
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

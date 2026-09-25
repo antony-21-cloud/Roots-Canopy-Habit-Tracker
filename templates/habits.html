@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habits - Roots & Canopy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <div class="header-left">
+                <h1>✅ All Habits</h1>
+                <p>Track your daily actions. Add habits even without a tree!</p>
+                <div class="header-stats">
+                    <span class="stat-badge">🔥 {{ user.streak_days }} day streak</span>
+                    <span class="stat-badge">🏆 {{ user.total_points }} points</span>
+                    <span class="stat-badge">🌱 Level {{ user.level }}</span>
+                </div>
+            </div>
+            <div class="header-right">
+                <a href="{{ url_for('add_habit_standalone') }}" class="btn-primary">
+                    ➕ Add Habit
+                </a>
+            </div>
+        </header>
+
+        <!-- Habits Table -->
+        <div class="habits-table-container">
+            <table class="habits-table">
+                <thead>
+                    <tr>
+                        <th>Habit</th>
+                        <th>Tree</th>
+                        <th>Frequency</th>
+                        <th>Today</th>
+                        <th>Status</th>
+                        <th>Points</th>
+                        <th>Delete</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in habits %}
+                    <tr class="habit-row {% if item.log.completed %}completed{% endif %}">
+                        <td>
+                            <span class="habit-icon">💧</span>
+                            <span class="habit-name">{{ item.habit.name }}</span>
+                            <span class="habit-created">Created: {{ item.habit.get_created_date_formatted() }}</span>
+                        </td>
+                        <td>
+                            <span class="tree-emoji">
+                                {% if item.tree %}
+                                    {{ item.tree.get_stage_emoji() }}
+                                {% else %}
+                                    🌱
+                                {% endif %}
+                            </span>
+                            <span class="tree-name">
+                                {% if item.tree %}
+                                    {{ item.tree.name }}
+                                {% else %}
+                                    Standalone
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td><span class="frequency-badge">{{ item.habit.frequency }}</span></td>
+                        <td>
+                            <input type="checkbox" class="habit-checkbox" 
+                                   data-log-id="{{ item.log.id }}"
+                                   {% if item.log.completed %}checked{% endif %}>
+                        </td>
+                        <td>
+                            {% if item.log.completed %}
+                            <span class="status-done">✅ Done</span>
+                            {% else %}
+                            <span class="status-pending">⏳ Pending</span>
+                            {% endif %}
+                            {% if not item.log.completed %}
+                            <button class="reason-btn" data-log-id="{{ item.log.id }}">💭</button>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if item.log.completed %}
+                            <span class="points-earned">+{{ item.habit.points }}</span>
+                            {% else %}
+                            <span class="points-available">+{{ item.habit.points }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <!-- FIXED: Changed { item_habit_id } to {{ item.habit.id }} -->
+                            <button onclick="confirmDeleteHabit({{ item.habit.id }}, '{{ item.habit.name }}')" 
+                                    class="btn-delete-small" 
+                                    title="Delete this habit">
+                                🗑️
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- No Habits Message -->
+        {% if not habits %}
+        <div class="empty-state">
+            <p>🌱 No habits yet. Start tracking your daily actions!</p>
+            <a href="{{ url_for('add_habit_standalone') }}" class="btn-primary">➕ Add Your First Habit</a>
+        </div>
+        {% endif %}
+
+        <!-- History Section -->
+        <div class="history-section">
+            <h2>📊 30-Day History</h2>
+            <div class="history-grid">
+                {% for item in habits %}
+                <div class="habit-history-card">
+                    <h4>{{ item.habit.name }}</h4>
+                    <div class="history-days">
+                        {% for log in item.history[:30] %}
+                        <div class="history-day {% if log.completed %}done{% else %}missed{% endif %}" 
+                            title="{{ log.date.strftime('%b %d') }}{% if not log.completed and log.reason %}: {{ log.reason }}{% endif %}">
+                            {{ log.date.strftime('%d') }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="history-stats">
+                        <span>✅ {{ item.history|selectattr('completed')|list|length }} done</span>
+                        <span>❌ {{ item.history|rejectattr('completed')|list|length }} missed</span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="bottom-nav">
+            <a href="{{ url_for('home') }}">🏠 Home</a>
+            <a href="{{ url_for('path_view') }}">🗺️ Path</a>
+            <a href="{{ url_for('habits_view') }}" class="active">✅ Habits</a>
+            <a href="{{ url_for('profile') }}">👤 Profile</a>
+            <a href="{{ url_for('create_goal') }}" class="nav-create">➕ New Goal</a>
+        </nav>
+    </div>
+
+    <!-- Modal for reason -->
+    <div id="reason-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3>💭 Why did you miss this habit?</h3>
+            <textarea id="reason-text" rows="3" placeholder="Be honest... this helps you grow."></textarea>
+            <div class="modal-buttons">
+                <button id="save-reason" class="btn-primary">Save</button>
+                <button id="cancel-reason" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast" style="display:none;"></div>
+
+    <style>
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        .page-header {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            color: #1a3a1a;
+        }
+
+        .page-header p {
+            color: #4a6a4a;
+            margin: 4px 0 0 0;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+
+        .stat-badge {
+            background: #e8f5e8;
+            color: #2d5a2d;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+
+        .header-right .btn-primary {
+            background: #2d5a2d;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            display: inline-block;
+        }
+
+        .header-right .btn-primary:hover {
+            background: #1a3a1a;
+        }
+
+        .habits-table-container {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+
+        .habits-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .habits-table thead {
+            background: #f0f5f0;
+        }
+
+        .habits-table th {
+            padding: 12px 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #1a3a1a;
+            font-size: 0.85rem;
+            border-bottom: 2px solid #d0e0d0;
+        }
+
+        .habits-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e8ece8;
+            vertical-align: middle;
+        }
+
+        .habit-row.completed {
+            background: #f8fcf8;
+        }
+
+        .habit-icon {
+            font-size: 1rem;
+            margin-right: 8px;
+        }
+
+        .habit-name {
+            font-weight: 500;
+        }
+
+        .habit-created {
+            font-size: 0.75rem;
+            color: #6a8a6a;
+            margin-left: 8px;
+        }
+
+        .tree-emoji {
+            margin-right: 4px;
+        }
+
+        .tree-name {
+            font-size: 0.85rem;
+            color: #4a6a4a;
+        }
+
+        .frequency-badge {
+            background: #e8ece8;
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            text-transform: capitalize;
+        }
+
+        .habit-checkbox {
+            width: 20px;
+            height: 20px;
+            accent-color: #2d5a2d;
+            cursor: pointer;
+        }
+
+        .status-done {
+            color: #2d5a2d;
+            font-weight: 500;
+        }
+
+        .status-pending {
+            color: #8a8a3a;
+            font-weight: 500;
+        }
+
+        .reason-btn {
+            background: none;
+            border: none;
+            color: #8a6a3a;
+            cursor: pointer;
+            font-size: 0.85rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .reason-btn:hover {
+            background: #f0ece8;
+        }
+
+        .points-earned {
+            color: #2d5a2d;
+            font-weight: bold;
+        }
+
+        .points-available {
+            color: #8a8a8a;
+        }
+
+        .btn-delete-small {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: background 0.3s;
+            color: #8a2a2a;
+        }
+
+        .btn-delete-small:hover {
+            background: #fde8e8;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+
+        .empty-state .btn-primary {
+            display: inline-block;
+            margin-top: 12px;
+            background: #2d5a2d;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .history-section {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 24px;
+        }
+
+        .history-section h2 {
+            margin: 0 0 16px 0;
+            color: #1a3a1a;
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .habit-history-card {
+            background: #f8faf8;
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid #e0ece0;
+        }
+
+        .habit-history-card h4 {
+            margin: 0 0 8px 0;
+            font-size: 0.95rem;
+            color: #1a3a1a;
+        }
+
+        .history-days {
+            display: grid;
+            grid-template-columns: repeat(15, 1fr);
+            gap: 3px;
+            margin-bottom: 8px;
+        }
+
+        .history-day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            border-radius: 3px;
+            background: #e8ece8;
+            color: #6a8a6a;
+        }
+
+        .history-day.done {
+            background: #2d5a2d;
+            color: white;
+        }
+
+        .history-day.missed {
+            background: #d4a0a0;
+            color: white;
+        }
+
+        .history-stats {
+            font-size: 0.8rem;
+            color: #4a6a4a;
+            display: flex;
+            gap: 12px;
+        }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #1a3a1a;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 2000;
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #e0ece0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+            z-index: 100;
+        }
+
+        .bottom-nav a {
+            text-decoration: none;
+            color: #4a6a4a;
+            font-size: 0.85rem;
+            padding: 6px 16px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .bottom-nav a:hover {
+            background: #e8ece8;
+        }
+
+        .bottom-nav a.active {
+            background: #2d5a2d;
+            color: white;
+        }
+
+        .bottom-nav .nav-create {
+            background: #2d5a2d;
+            color: white;
+        }
+
+        .bottom-nav .nav-create:hover {
+            background: #1a3a1a;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h3 {
+            margin: 0 0 8px 0;
+        }
+
+        .modal-content textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d0e0d0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            margin: 12px 0;
+        }
+
+        .modal-content textarea:focus {
+            outline: none;
+            border-color: #2d5a2d;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-buttons .btn-primary {
+            flex: 1;
+            background: #2d5a2d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .modal-buttons .btn-secondary {
+            flex: 1;
+            background: #e8ece8;
+            color: #1a3a1a;
+            padding: 10px 20px;
+            border: 1px solid #c0d0c0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 700px) {
+            .habits-table thead {
+                display: none;
+            }
+            .habits-table tbody tr {
+                display: block;
+                margin-bottom: 12px;
+                border: 1px solid #e0ece0;
+                border-radius: 8px;
+                padding: 12px;
+            }
+            .habits-table tbody td {
+                display: flex;
+                justify-content: space-between;
+                border: none;
+                padding: 4px 0;
+            }
+            .habits-table tbody td::before {
+                content: attr(data-label);
+                font-weight: 600;
+                color: #4a6a4a;
+            }
+            .history-grid {
+                grid-template-columns: 1fr;
+            }
+            .page-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .header-stats {
+                justify-content: center;
+            }
+            .bottom-nav a {
+                font-size: 0.7rem;
+                padding: 4px 10px;
+            }
+        }
+    </style>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const modal = document.getElementById('reason-modal');
+            const reasonText = document.getElementById('reason-text');
+            const saveBtn = document.getElementById('save-reason');
+            const cancelBtn = document.getElementById('cancel-reason');
+            let currentLogId = null;
+
+            // Reason buttons
+            document.querySelectorAll('.reason-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    currentLogId = this.dataset.logId;
+                    modal.style.display = 'flex';
+                    reasonText.value = '';
+                    reasonText.focus();
+                });
+            });
+
+            saveBtn.addEventListener('click', function() {
+                if (currentLogId && reasonText.value.trim()) {
+                    toggleHabit(currentLogId, false, reasonText.value.trim());
+                    modal.style.display = 'none';
+                    currentLogId = null;
+                } else {
+                    alert('Please enter a reason.');
+                }
+            });
+
+            cancelBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                currentLogId = null;
+            });
+
+            // Checkbox toggles
+            document.querySelectorAll('.habit-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const logId = this.dataset.logId;
+                    if (!this.checked) {
+                        currentLogId = logId;
+                        modal.style.display = 'flex';
+                        reasonText.value = '';
+                        reasonText.focus();
+                        this.checked = true;
+                    } else {
+                        toggleHabit(logId, true);
+                    }
+                });
+            });
+
+            function toggleHabit(logId, completed, reason = '') {
+                fetch(`/toggle_habit/${logId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ completed, reason })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        location.reload();
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+
+            // Close modal on outside click
+            window.addEventListener('click', function(event) {
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                    currentLogId = null;
+                }
+            });
+        });
+
+        // ----- DELETE HABIT FUNCTION -----
+        function confirmDeleteHabit(habitId, habitName) {
+            if (confirm(`⚠️ Are you sure you want to delete the habit "${habitName}"?\n\nThis action cannot be undone.`)) {
+                fetch(`/habit/${habitId}/delete`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showToast(`🗑️ Habit "${habitName}" deleted successfully`);
+                        setTimeout(() => location.reload(), 1000);
+                    } else {
+                        alert('❌ Error deleting habit: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('❌ An error occurred. Please try again.');
+                });
+            }
+        }
+
+        // Toast notification helper
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            if (toast) {
+                toast.textContent = message;
+                toast.style.display = 'block';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 3000);
+            } else {
+                alert(message);
+            }
+        }
+    </script>
+</body>
+</html>

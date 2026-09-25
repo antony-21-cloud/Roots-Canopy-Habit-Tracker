@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Habits - Roots & Canopy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="wizard-container">
+            <div class="wizard-content">
+                <h1>💧 Add Habits to Your Tree</h1>
+                <p><strong>Tree:</strong> {{ tree.name }}</p>
+                <p class="info-text">A tree needs <strong>at least 3 habits</strong> to grow strong! 🌱</p>
+
+                <!-- Progress -->
+                <div class="habit-progress">
+                    <div class="habit-progress-bar">
+                        <div class="habit-progress-fill" style="width: {{ (habit_count / 3 * 100)|round|int if habit_count < 3 else 100 }}%;"></div>
+                    </div>
+                    <span class="habit-progress-text">
+                        {% if habit_count < 3 %}
+                            {{ habit_count }}/3 habits added ({{ habits_needed }} more needed)
+                        {% else %}
+                            ✅ {{ habit_count }} habits added! (Minimum met)
+                        {% endif %}
+                    </span>
+                </div>
+
+                <!-- Existing habits -->
+                {% if habits %}
+                <div class="existing-habits">
+                    <h4>✅ Habits added so far:</h4>
+                    {% for habit in habits %}
+                    <div class="habit-added">
+                        <span class="habit-icon">💧</span>
+                        <span class="habit-name">{{ habit.name }}</span>
+                        <span class="habit-frequency">{{ habit.frequency }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Warning if less than 3 habits -->
+                {% if habit_count < 3 %}
+                <div class="warning-box">
+                    <p>⚠️ You need <strong>{{ habits_needed }} more habit{% if habits_needed > 1 %}s{% endif %}</strong> for this tree!</p>
+                </div>
+                {% else %}
+                <div class="success-box">
+                    <p>✅ Great! You have {{ habit_count }} habits. Add more or finish.</p>
+                </div>
+                {% endif %}
+
+                <form method="POST" class="form">
+                    <div class="form-group">
+                        <label for="name">💧 Habit Name</label>
+                        <input type="text" id="name" name="name" required 
+                               placeholder="e.g., Study Python for 1 hour" autofocus>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="description">Description</label>
+                        <textarea id="description" name="description" rows="2" 
+                                  placeholder="What does this habit involve?"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="frequency">Frequency</label>
+                        <select id="frequency" name="frequency">
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="points">Points per Completion</label>
+                        <input type="number" id="points" name="points" value="10" min="1" max="50">
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="submit" name="add_another" value="1" class="btn-secondary">
+                            💧 Add Another Habit
+                        </button>
+                        <button type="submit" class="btn-primary">
+                            {% if habit_count < 3 %}
+                                Add Habit {{ habit_count + 1 }}/3
+                            {% else %}
+                                ✅ Done!
+                            {% endif %}
+                        </button>
+                    </div>
+                </form>
+
+                {% if habit_count < 3 %}
+                <div class="cannot-finish">
+                    <p>🚫 You need at least <strong>3 habits</strong> to complete this tree.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .container { max-width: 700px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .wizard-container { width: 100%; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .wizard-content h1 { margin: 0 0 4px 0; color: #1a3a1a; }
+        .wizard-content p { color: #4a6a4a; margin: 0 0 4px 0; }
+        .info-text { color: #6a8a6a; font-size: 0.9rem; margin-bottom: 16px !important; }
+        .habit-progress { margin: 16px 0; padding: 16px; background: #f0f4f0; border-radius: 12px; }
+        .habit-progress-bar { height: 12px; background: #e0e8e0; border-radius: 6px; overflow: hidden; }
+        .habit-progress-fill { height: 100%; background: linear-gradient(90deg, #2d5a2d, #6aaa6a); border-radius: 6px; transition: width 0.5s ease; }
+        .habit-progress-text { display: block; text-align: center; font-weight: bold; color: #2d5a2d; margin-top: 6px; }
+        .existing-habits { padding: 16px; background: #f8faf8; border-radius: 12px; margin-bottom: 16px; }
+        .existing-habits h4 { margin: 0 0 8px 0; color: #1a3a1a; }
+        .habit-added { display: flex; align-items: center; gap: 10px; padding: 6px 12px; background: white; border-radius: 8px; margin-bottom: 4px; border: 1px solid #d0e0d0; }
+        .habit-icon { font-size: 1rem; }
+        .habit-name { font-weight: 500; flex: 1; }
+        .habit-frequency { font-size: 0.8rem; color: #4a6a4a; background: #e8ece8; padding: 2px 12px; border-radius: 12px; }
+        .warning-box { padding: 12px 16px; background: #fff3e0; border-radius: 12px; border: 1px solid #f5d0a0; margin-bottom: 16px; }
+        .warning-box p { margin: 0; color: #6a4a20; }
+        .success-box { padding: 12px 16px; background: #e8f5e8; border-radius: 12px; border: 1px solid #2d5a2d; margin-bottom: 16px; }
+        .success-box p { margin: 0; color: #1a3a1a; }
+        .cannot-finish { margin-top: 16px; padding: 12px 16px; background: #fde8e8; border-radius: 12px; border: 1px solid #d4a0a0; text-align: center; }
+        .cannot-finish p { margin: 0; color: #6a2a2a; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 6px; color: #1a3a1a; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 10px 14px;
+            border: 2px solid #d0e0d0; border-radius: 8px;
+            font-size: 1rem; font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: #2d5a2d;
+        }
+        .form-actions { display: flex; gap: 12px; margin-top: 16px; }
+        .btn-primary {
+            background: #2d5a2d; color: white; padding: 12px 24px;
+            border: none; border-radius: 8px; font-size: 1rem; font-weight: bold;
+            cursor: pointer; flex: 2; transition: background 0.3s;
+        }
+        .btn-primary:hover { background: #1a3a1a; }
+        .btn-secondary {
+            background: #e8ece8; color: #1a3a1a; padding: 12px 20px;
+            border: 1px solid #c0d0c0; border-radius: 8px;
+            font-size: 1rem; cursor: pointer; flex: 1; transition: background 0.3s;
+        }
+        .btn-secondary:hover { background: #d0ddd0; }
+        @media (max-width: 600px) {
+            .form-actions { flex-direction: column; }
+        }
+    </style>
+</body>
+</html>

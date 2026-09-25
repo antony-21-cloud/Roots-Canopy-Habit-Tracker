@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome - Roots & Canopy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="welcome-container">
+            <div class="welcome-header">
+                <h1>🌱 Welcome to Roots & Canopy, {{ user.name }}!</h1>
+                <p>Let's plant your first tree and start your journey.</p>
+            </div>
+
+            <div class="welcome-steps">
+                <div class="step active">1. Goal</div>
+                <div class="step">2. Tree</div>
+                <div class="step">3. Habit</div>
+            </div>
+
+            <div class="welcome-content">
+                <h2>🎯 What's Your Big Goal?</h2>
+                <p>Think 5-10 years ahead. What do you want to achieve?</p>
+                <p class="examples">e.g., "Become a Security Architect" or "Master Python"</p>
+
+                <a href="{{ url_for('welcome_goal') }}" class="btn-primary">Let's Start →</a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .welcome-container {
+            width: 100%;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .welcome-header h1 {
+            color: #1a3a1a;
+            margin: 0 0 4px 0;
+        }
+        .welcome-header p {
+            color: #4a6a4a;
+            margin: 0 0 24px 0;
+        }
+        .welcome-steps {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .step {
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            background: #e8ece8;
+            color: #6a8a6a;
+        }
+        .step.active {
+            background: #2d5a2d;
+            color: white;
+        }
+        .welcome-content h2 {
+            color: #1a3a1a;
+            margin: 0 0 8px 0;
+        }
+        .welcome-content p {
+            color: #4a6a4a;
+            margin: 0 0 4px 0;
+        }
+        .examples {
+            color: #6a8a6a;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+        .btn-primary {
+            display: inline-block;
+            background: #2d5a2d;
+            color: white;
+            padding: 14px 40px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            font-size: 1.1rem;
+            transition: background 0.3s;
+        }
+        .btn-primary:hover {
+            background: #1a3a1a;
+        }
+    </style>
+</body>
+</html>

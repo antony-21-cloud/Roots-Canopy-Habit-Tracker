@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Path - Roots & Canopy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="page-header">
+            <h1>🗺️ Your Path</h1>
+            <p>Your journey from where you are to where you want to be.</p>
+        </header>
+
+        {% if goals %}
+            {% for goal_item in goals %}
+            <div class="path-goal">
+                <div class="path-goal-header">
+                    <span class="goal-icon">🎯</span>
+                    <h2>{{ goal_item.goal.title }}</h2>
+                    <span class="goal-status">Active</span>
+                </div>
+                <p class="goal-description">{{ goal_item.goal.description }}</p>
+
+                {% if goal_item.trees %}
+                    <div class="path-trees">
+                        <h3>🌳 Trees on this path:</h3>
+                        {% for tree in goal_item.trees %}
+                        <div class="path-tree">
+                            <div class="tree-info">
+                                <span class="tree-emoji">{{ tree.get_stage_emoji() }}</span>
+                                <span class="tree-name">{{ tree.name }}</span>
+                                <span class="tree-stage">{{ tree.get_stage_name() }}</span>
+                            </div>
+                            <div class="tree-progress-bar">
+                                <div class="tree-progress-fill" style="width: {{ tree.get_progress() }}%;"></div>
+                            </div>
+                            <div class="tree-progress-text">{{ tree.get_progress()|round|int }}%</div>
+
+                            {% if tree.habits %}
+                                <div class="tree-habits">
+                                    {% for habit in tree.habits %}
+                                    <div class="habit-item">
+                                        <span class="habit-icon">💧</span>
+                                        <span class="habit-name">{{ habit.name }}</span>
+                                        <span class="habit-frequency">{{ habit.frequency }}</span>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="empty-state-small">No habits added yet.</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <p>🌱 No trees planted yet. <a href="{{ url_for('create_goal') }}">Add some!</a></p>
+                    </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                <p>🎯 No goals set yet.</p>
+                <a href="{{ url_for('create_goal') }}" class="btn-primary">Create Your First Goal</a>
+            </div>
+        {% endif %}
+
+        <!-- Navigation -->
+        <nav class="bottom-nav">
+            <a href="{{ url_for('home') }}">🏠 Home</a>
+            <a href="{{ url_for('path_view') }}" class="active">🗺️ Path</a>
+            <a href="{{ url_for('habits_view') }}">✅ Habits</a>
+            <a href="{{ url_for('profile') }}">👤 Profile</a>
+            <a href="{{ url_for('create_goal') }}" class="nav-create">➕ New Goal</a>
+        </nav>
+    </div>
+
+    <style>
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        .page-header {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .page-header h1 {
+            margin: 0;
+            color: #1a3a1a;
+        }
+
+        .page-header p {
+            color: #4a6a4a;
+            margin: 4px 0 0 0;
+        }
+
+        .path-goal {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .path-goal-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 4px;
+        }
+
+        .path-goal-header h2 {
+            margin: 0;
+            color: #1a3a1a;
+            font-size: 1.3rem;
+        }
+
+        .goal-icon {
+            font-size: 1.5rem;
+        }
+
+        .goal-status {
+            background: #e8f5e8;
+            color: #2d5a2d;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        .goal-description {
+            color: #4a6a4a;
+            margin: 4px 0 16px 0;
+        }
+
+        .path-trees {
+            margin-top: 12px;
+        }
+
+        .path-trees h3 {
+            font-size: 1rem;
+            color: #1a3a1a;
+            margin: 0 0 12px 0;
+        }
+
+        .path-tree {
+            background: #f8faf8;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #e0ece0;
+        }
+
+        .tree-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .tree-emoji {
+            font-size: 1.5rem;
+        }
+
+        .tree-name {
+            font-weight: 600;
+            color: #1a3a1a;
+        }
+
+        .tree-stage {
+            font-size: 0.8rem;
+            color: #4a6a4a;
+            background: #e8ece8;
+            padding: 2px 12px;
+            border-radius: 12px;
+        }
+
+        .tree-progress-bar {
+            height: 6px;
+            background: #e8ece8;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-bottom: 4px;
+        }
+
+        .tree-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2d5a2d, #6aaa6a);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .tree-progress-text {
+            font-size: 0.85rem;
+            color: #4a6a4a;
+            margin-bottom: 8px;
+        }
+
+        .tree-habits {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .habit-item {
+            background: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            border: 1px solid #d0e0d0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .habit-icon {
+            font-size: 0.9rem;
+        }
+
+        .habit-name {
+            color: #1a3a1a;
+        }
+
+        .habit-frequency {
+            color: #6a8a6a;
+            font-size: 0.7rem;
+            text-transform: capitalize;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #4a6a4a;
+        }
+
+        .empty-state a {
+            color: #2d5a2d;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .empty-state a:hover {
+            text-decoration: underline;
+        }
+
+        .empty-state-small {
+            color: #6a8a6a;
+            font-size: 0.85rem;
+            margin-top: 4px;
+        }
+
+        .btn-primary {
+            display: inline-block;
+            background: #2d5a2d;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            margin-top: 12px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #1a3a1a;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #e0ece0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+            z-index: 100;
+        }
+
+        .bottom-nav a {
+            text-decoration: none;
+            color: #4a6a4a;
+            font-size: 0.85rem;
+            padding: 6px 16px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .bottom-nav a:hover {
+            background: #e8ece8;
+        }
+
+        .bottom-nav a.active {
+            background: #2d5a2d;
+            color: white;
+        }
+
+        .bottom-nav .nav-create {
+            background: #2d5a2d;
+            color: white;
+        }
+
+        .bottom-nav .nav-create:hover {
+            background: #1a3a1a;
+        }
+
+        @media (max-width: 600px) {
+            .path-goal-header {
+                flex-wrap: wrap;
+            }
+
+            .tree-info {
+                flex-wrap: wrap;
+            }
+
+            .bottom-nav a {
+                font-size: 0.7rem;
+                padding: 4px 10px;
+            }
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Roots & Canopy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="home-header">
+            <div class="user-info">
+                <div class="avatar" onclick="document.getElementById('photo-upload').click()">
+                    <img src="{{ url_for('static', filename='uploads/' + user.profile_photo) if user.profile_photo != 'default.jpg' else 'https://ui-avatars.com/api/?name=' + user.name + '&background=2d5a2d&color=fff&size=64' }}" 
+                        alt="{{ user.name }}">
+                    <input type="file" id="photo-upload" style="display:none;" accept="image/*">
+                    <span class="level-badge">{{ user.get_level_emoji() }} Lv.{{ user.level }}</span>
+                </div>
+                <div>
+                    <h1>👋 Hello, {{ user.name }}!</h1>
+                    <p>🌱 Member since {{ user.created_at.strftime('%B %Y') }}</p>
+                </div>
+            </div>
+            <div class="header-stats">
+                <div class="stat-item">
+                    <span class="stat-value">🔥 {{ user.streak_days }}</span>
+                    <span class="stat-label">Day Streak</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">🏆 {{ user.total_points }}</span>
+                    <span class="stat-label">Points</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ completed_habits }}/{{ total_habits }}</span>
+                    <span class="stat-label">Today</span>
+                </div>
+                <div class="stat-item">
+                    <a href="{{ url_for('logout') }}" class="logout-btn">🚪 Logout</a>
+                </div>
+            </div>
+            <div class="user-greeting">
+        <div class="avatar-small">{{ user.name[0]|upper }}</div>
+        <div>
+            <h1>👋 Welcome back, {{ user.name }}!</h1>
+            <p>🌱 Let's water your trees today.</p>
+        </div>
+    </div>
+    <div class="header-actions">
+        <!-- FIXED: Use url_for with correct route names -->
+        <a href="{{ url_for('add_habit_standalone') }}" class="btn-header">💧 Add Habit</a>
+        <a href="{{ url_for('profile') }}" class="btn-avatar">👤</a>
+    </div>
+        </header>
+
+        <!-- Motivational Quote -->
+        <div class="quote-banner">
+            <p id="daily-quote">Loading quote...</p>
+        </div>
+
+        <!-- Goals Section -->
+        <section class="goals-section">
+            <h2>🎯 Your Goals</h2>
+            <div class="goals-grid">
+                {% for goal in goals %}
+                <div class="goal-card">
+                    <div class="goal-header">
+                        <span class="goal-icon">🏔️</span>
+                        <h3>{{ goal.goal.title }}</h3>
+                    </div>
+                    <div class="goal-progress">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: {{ goal.progress }}%;"></div>
+                        </div>
+                        <span class="progress-text">{{ goal.progress|round|int }}%</span>
+                    </div>
+                    <div class="goal-detail">
+                        <span>{{ goal.trees|length }} trees</span>
+                        <a href="{{ url_for('view_goal', goal_id=goal.goal.id) }}" class="view-link">View →</a>
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>No goals yet. <a href="{{ url_for('create_goal') }}">Create your first goal!</a></p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Trees Section -->
+        <section class="trees-section">
+            <h2>🌳 Your Trees</h2>
+            <div class="trees-grid">
+                {% for tree in trees %}
+                <div class="tree-card">
+                    <span class="tree-emoji-large">{{ tree.get_stage_emoji() }}</span>
+                    <span class="tree-name">{{ tree.name }}</span>
+                    <div class="tree-stage">{{ tree.get_stage_name() }}</div>
+                    <div class="tree-progress-bar">
+                        <div class="tree-progress-fill" style="width: {{ tree.get_progress() }}%;"></div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="empty-state">
+                    <p>No trees planted. <a href="{{ url_for('create_goal') }}">Plant your first tree!</a></p>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Habits Section (Today's tasks) -->
+        <section class="habits-section">
+            <h2>💧 Today's Habits</h2>
+            <div class="habits-list">
+                {% for item in habits %}
+                <div class="habit-item">
+                    <div class="habit-info">
+                        <span class="habit-emoji">💧</span>
+                        <span class="habit-name">{{ item.habit.name }}</span>
+                    <span class="tree-name">
+    {% if item.tree %}
+        {{ item.tree.name }}
+    {% else %}
+        Standalone
+    {% endif %}
+</span>
+                    </div>
+                    <div class="habit-actions">
+                        <input type="checkbox" class="habit-checkbox" 
+                            data-log-id="{{ item.log.id }}"
+                            {% if item.log.completed %}checked{% endif %}>
+                        <span class="habit-points">+{{ item.habit.points }}pts</span>
+                        {% if not item.log.completed %}
+                        <button class="reason-btn" data-log-id="{{ item.log.id }}">
+                            💭 Why not?
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% if item.log.reason %}
+                    <div class="habit-reason">💭 {{ item.log.reason }}</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+
+        <!-- Navigation -->
+        <nav class="bottom-nav">
+            <a href="{{ url_for('home') }}" class="active">🏠 Home</a>
+            <a href="{{ url_for('path_view') }}">🗺️ Path</a>
+            <a href="{{ url_for('habits_view') }}">✅ Habits</a>
+            <a href="{{ url_for('create_goal') }}" class="nav-create">➕ New Goal</a>
+        </nav>
+    </div>
+
+    <!-- Modal for reason -->
+    <div id="reason-modal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <h3>💭 Why did you miss this habit?</h3>
+            <textarea id="reason-text" rows="3" placeholder="Be honest... this helps you grow."></textarea>
+            <div class="modal-buttons">
+                <button id="save-reason" class="btn-primary">Save</button>
+                <button id="cancel-reason" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Level-up Toast -->
+    <div id="level-up" class="level-toast" style="display:none;">
+        <span id="level-emoji">🏆</span>
+        <span id="level-message">Level Up!</span>
+    </div>
+
+    <style>
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 16px;
+            padding-bottom: 80px;
+        }
+
+        .home-header {
+            background: white;
+            padding: 20px 24px;
+            border-radius: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            margin-bottom: 16px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .avatar {
+            position: relative;
+            cursor: pointer;
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 3px solid #2d5a2d;
+        }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .level-badge {
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            background: #2d5a2d;
+            color: white;
+            font-size: 0.7rem;
+            padding: 2px 6px;
+            border-radius: 12px;
+            border: 2px solid white;
+        }
+
+        .header-stats {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            display: block;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #1a3a1a;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #6a8a6a;
+        }
+
+        .logout-btn {
+            background: #f0e8e8;
+            color: #8a4a4a;
+            padding: 8px 16px;
+            border-radius: 20px;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: background 0.3s;
+        }
+
+        .logout-btn:hover {
+            background: #e8d0d0;
+        }
+
+        .quote-banner {
+            background: linear-gradient(135deg, #e8f5e8, #c8e8c8);
+            padding: 16px 24px;
+            border-radius: 12px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-style: italic;
+            color: #1a3a1a;
+            font-size: 1.05rem;
+        }
+
+        .goals-section {
+            margin-bottom: 24px;
+        }
+
+        .goals-section h2 {
+            margin-bottom: 12px;
+            color: #1a3a1a;
+        }
+
+        .goals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        .goal-card {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+            border-left: 4px solid #2d5a2d;
+        }
+
+        .goal-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .goal-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            color: #1a3a1a;
+        }
+
+        .goal-progress {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .progress-bar {
+            flex: 1;
+            height: 8px;
+            background: #e8ece8;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2d5a2d, #6aaa6a);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            font-weight: bold;
+            font-size: 0.85rem;
+            color: #2d5a2d;
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .goal-detail {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+            font-size: 0.85rem;
+            color: #6a8a6a;
+        }
+
+        .view-link {
+            color: #2d5a2d;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        .trees-section {
+            margin-bottom: 24px;
+        }
+
+        .trees-section h2 {
+            margin-bottom: 12px;
+            color: #1a3a1a;
+        }
+
+        .trees-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+        }
+
+        .tree-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .tree-emoji-large {
+            font-size: 2.5rem;
+            display: block;
+        }
+
+        .tree-name {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #1a3a1a;
+            margin: 4px 0;
+        }
+
+        .tree-stage {
+            font-size: 0.75rem;
+            color: #6a8a6a;
+        }
+
+        .tree-progress-bar {
+            height: 4px;
+            background: #e8ece8;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .tree-progress-fill {
+            height: 100%;
+            background: #2d5a2d;
+            border-radius: 2px;
+            transition: width 0.5s ease;
+        }
+
+        .habits-section {
+            margin-bottom: 24px;
+        }
+
+        .habits-section h2 {
+            margin-bottom: 12px;
+            color: #1a3a1a;
+        }
+
+        .habit-item {
+            background: white;
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .habit-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 150px;
+        }
+
+        .habit-emoji {
+            font-size: 1.2rem;
+        }
+
+        .habit-name {
+            font-weight: 500;
+        }
+
+        .habit-tree {
+            font-size: 0.8rem;
+            color: #6a8a6a;
+            background: #e8ece8;
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+
+        .habit-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .habit-checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #2d5a2d;
+        }
+
+        .habit-points {
+            font-size: 0.8rem;
+            color: #4a8a4a;
+            font-weight: bold;
+        }
+
+        .reason-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #8a6a3a;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .reason-btn:hover {
+            background: #f0ece8;
+        }
+
+        .habit-reason {
+            flex-basis: 100%;
+            font-size: 0.85rem;
+            color: #6a4a3a;
+            font-style: italic;
+            padding-left: 36px;
+        }
+
+        .empty-state {
+            padding: 30px;
+            text-align: center;
+            color: #6a8a6a;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+
+        .empty-state a {
+            color: #2d5a2d;
+            font-weight: bold;
+        }
+
+        /* Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #e0ece0;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.08);
+            z-index: 100;
+        }
+
+        .bottom-nav a {
+            text-decoration: none;
+            color: #4a6a4a;
+            font-size: 0.85rem;
+            padding: 6px 16px;
+            border-radius: 20px;
+            transition: all 0.3s;
+        }
+
+        .bottom-nav a:hover {
+            background: #e8ece8;
+        }
+
+        .bottom-nav a.active {
+            background: #2d5a2d;
+            color: white;
+        }
+
+        .bottom-nav .nav-create {
+            background: #2d5a2d;
+            color: white;
+        }
+
+        .bottom-nav .nav-create:hover {
+            background: #1a3a1a;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 32px;
+            border-radius: 16px;
+            max-width: 450px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h3 {
+            margin: 0 0 8px 0;
+        }
+
+        .modal-content textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #d0e0d0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            resize: vertical;
+            margin: 12px 0;
+        }
+
+        .modal-content textarea:focus {
+            outline: none;
+            border-color: #2d5a2d;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .modal-buttons .btn-primary {
+            flex: 1;
+            background: #2d5a2d;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        .modal-buttons .btn-secondary {
+            flex: 1;
+            background: #e8ece8;
+            color: #1a3a1a;
+            padding: 10px 20px;
+            border: 1px solid #c0d0c0;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        /* Level-up Toast */
+        .level-toast {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #2d5a2d, #4a8a4a);
+            color: white;
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 2000;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            animation: popIn 0.5s ease;
+        }
+
+        #level-emoji {
+            font-size: 4rem;
+            display: block;
+        }
+
+        #level-message {
+            font-size: 1.5rem;
+            font-weight: bold;
+            display: block;
+            margin-top: 8px;
+        }
+
+        @keyframes popIn {
+            0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        @media (max-width: 600px) {
+            .home-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .header-stats {
+                justify-content: space-around;
+            }
+
+            .goals-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .trees-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .habit-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .habit-info {
+                min-width: unset;
+            }
+
+            .habit-actions {
+                justify-content: flex-start;
+            }
+
+            .bottom-nav a {
+                font-size: 0.7rem;
+                padding: 4px 10px;
+            }
+        }
+    </style>
+
+    <script>
+        // Motivational quotes
+        const quotes = [
+            "The secret of getting ahead is getting started. — Mark Twain",
+            "Success is the sum of small efforts repeated day in and day out. — Robert Collier",
+            "The only way to do great work is to love what you do. — Steve Jobs",
+            "It does not matter how slowly you go as long as you do not stop. — Confucius",
+            "The best time to plant a tree was 20 years ago. The second best time is now. — Chinese Proverb",
+            "Small daily improvements over time lead to stunning results. — Robin Sharma",
+            "The journey of a thousand miles begins with one step. — Lao Tzu",
+            "You don't have to be extreme, just consistent. — Unknown"
+        ];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Random quote
+            const quoteEl = document.getElementById('daily-quote');
+            quoteEl.textContent = quotes[Math.floor(Math.random() * quotes.length)];
+
+            // Reason modal
+            const modal = document.getElementById('reason-modal');
+            const reasonText = document.getElementById('reason-text');
+            const saveBtn = document.getElementById('save-reason');
+            const cancelBtn = document.getElementById('cancel-reason');
+            let currentLogId = null;
+            let currentCheckbox = null;
+
+            document.querySelectorAll('.reason-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    currentLogId = this.dataset.logId;
+                    modal.style.display = 'flex';
+                    reasonText.value = '';
+                    reasonText.focus();
+                });
+            });
+
+            saveBtn.addEventListener('click', function() {
+                if (currentLogId && reasonText.value.trim()) {
+                    toggleHabit(currentLogId, false, reasonText.value.trim());
+                    modal.style.display = 'none';
+                    currentLogId = null;
+                } else {
+                    alert('Please enter a reason.');
+                }
+            });
+
+            cancelBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+                currentLogId = null;
+            });
+
+            // Handle checkbox toggles
+            document.querySelectorAll('.habit-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const logId = this.dataset.logId;
+                    if (!this.checked) {
+                        // If unchecking, ask for reason first
+                        currentLogId = logId;
+                        currentCheckbox = this;
+                        modal.style.display = 'flex';
+                        reasonText.value = '';
+                        reasonText.focus();
+                        this.checked = true; // Keep checked until reason is saved
+                    } else {
+                        toggleHabit(logId, true);
+                    }
+                });
+            });
+
+            function toggleHabit(logId, completed, reason = '') {
+                fetch(`/toggle_habit/${logId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ completed, reason })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Update the checkbox state
+                        const checkbox = document.querySelector(`.habit-checkbox[data-log-id="${logId}"]`);
+                        if (checkbox) checkbox.checked = completed;
+
+                        // Show level up animation
+                        if (data.level_changed) {
+                            showLevelUp(data.level_emoji, `Level ${data.level}!`);
+                        }
+
+                        // Update points display
+                        if (data.points_earned > 0) {
+                            // Update the points display
+                            const pointsEl = document.querySelector(`.habit-checkbox[data-log-id="${logId}"]`)
+                                .closest('.habit-actions')
+                                .querySelector('.habit-points');
+                            if (pointsEl) {
+                                pointsEl.textContent = `+${data.points_earned}pts`;
+                            }
+                        }
+
+                        // Reload after a moment to update stats
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+
+            function showLevelUp(emoji, message) {
+                const toast = document.getElementById('level-up');
+                document.getElementById('level-emoji').textContent = emoji;
+                document.getElementById('level-message').textContent = message;
+                toast.style.display = 'block';
+                setTimeout(() => {
+                    toast.style.display = 'none';
+                }, 3000);
+            }
+
+            // Profile photo upload
+            document.getElementById('photo-upload').addEventListener('change', function(e) {
+                const file = this.files[0];
+                if (file) {
+                    const formData = new FormData();
+                    formData.append('photo', file);
+                    fetch('/upload_photo', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            location.reload();
+                        }
+                    });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

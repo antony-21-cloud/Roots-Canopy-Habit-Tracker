@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Habit to Tree - Roots & Canopy</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="form-container">
+            <h1>💧 Add Habit to Tree</h1>
+            <p>Add a habit to your tree: <strong>{{ tree.name }}</strong></p>
+            <habit.user_id = current_user.id></habit.user_id>   
+
+            <form method="POST" class="form">
+                <div class="form-group">
+                    <label for="name">💧 Habit Name</label>
+                    <input type="text" id="name" name="name" required 
+                        placeholder="e.g., Study for 1 hour" autofocus>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="2" 
+                            placeholder="What does this habit involve?"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="frequency">Frequency</label>
+                    <select id="frequency" name="frequency">
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="custom">Custom</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="points">Points per Completion</label>
+                    <input type="number" id="points" name="points" value="10" min="1" max="50">
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn-primary">💧 Add Habit</button>
+                    <a href="{{ url_for('view_tree', tree_id=tree.id) }}" class="btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <style>
+        .container { max-width: 700px; margin: 0 auto; padding: 20px; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .form-container { width: 100%; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+        .form-container h1 { margin: 0 0 4px 0; color: #1a3a1a; }
+        .form-container p { color: #4a6a4a; margin: 0 0 4px 0; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 8px; color: #1a3a1a; }
+        .form-group input, .form-group select, .form-group textarea {
+            width: 100%; padding: 12px 16px;
+            border: 2px solid #d0e0d0; border-radius: 8px;
+            font-size: 1rem; font-family: inherit;
+        }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+            outline: none; border-color: #2d5a2d;
+        }
+        .form-actions { display: flex; gap: 12px; margin-top: 20px; }
+        .btn-primary {
+            flex: 1; background: #2d5a2d; color: white;
+            padding: 14px; border: none; border-radius: 8px;
+            font-size: 1.1rem; font-weight: bold; cursor: pointer;
+            text-decoration: none; text-align: center;
+        }
+        .btn-primary:hover { background: #1a3a1a; }
+        .btn-secondary {
+            flex: 0.5; background: #e8ece8; color: #1a3a1a;
+            padding: 14px; border: 1px solid #c0d0c0; border-radius: 8px;
+            font-size: 1.1rem; cursor: pointer; text-decoration: none; text-align: center;
+        }
+        .btn-secondary:hover { background: #d0ddd0; }
+    </style>
+</body>
+</html>

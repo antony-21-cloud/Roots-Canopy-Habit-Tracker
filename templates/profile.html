@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>👤 Your Profile</h1>
+        
+        <div class="profile-card">
+            <div class="profile-avatar">
+                <div class="avatar-circle">{{ user.name[0]|upper }}</div>
+            </div>
+            <div class="profile-details">
+                <h2>{{ user.name }}</h2>
+                <p>📧 {{ user.email }}</p>
+                <p>🌱 Member since {{ user.created_at.strftime('%B %Y') }}</p>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ goals|length }}</div>
+                <div class="stat-label">Goals</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ total_trees }}</div>
+                <div class="stat-label">Trees</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ completed_trees }}</div>
+                <div class="stat-label">Grown</div>
+            </div>
+        </div>
+        
+        <h2>🎯 Your Goals</h2>
+        {% for item in goals %}
+        <div class="goal-item">
+            <h3>{{ item.goal.title }}</h3>
+            <p>{{ item.goal.description }}</p>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: {{ item.progress }}%;"></div>
+            </div>
+            <span>{{ item.progress|round|int }}% complete</span>
+            <span>{{ item.completed_stations }}/{{ item.total_stations }} stations</span>
+        </div>
+        {% else %}
+        <p>No goals yet. <a href="{{ url_for('create_goal') }}">Create your first goal!</a></p>
+        {% endfor %}
+        
+        <nav class="bottom-nav">
+    <a href="{{ url_for('home') }}" class="active">🏠 Home</a>
+    <a href="{{ url_for('path_view') }}">🗺️ Path</a>
+    <a href="{{ url_for('habits_view') }}">✅ Habits</a>
+    <a href="{{ url_for('profile') }}">👤 Profile</a>
+    <a href="{{ url_for('create_goal') }}" class="nav-create">➕ New Goal</a>
+</nav>
+    </div>
+
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            padding-bottom: 80px;
+        }
+        
+        .profile-card {
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        
+        .avatar-circle {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #2d5a2d, #4a8a4a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 2.5rem;
+            font-weight: bold;
+        }
+        
+        .profile-details h2 {
+            margin: 0;
+            color: #1a3a1a;
+        }
+        
+        .profile-details p {
+            color: #4a6a4a;
+            margin: 4px 0;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2d5a2d;
+        }
+        
+        .stat-label {
+            color: #4a6a4a;
+        }
+        
+        .goal-item {
+            background: white;
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        
+        .goal-item h3 {
+            margin: 0 0 4px 0;
+            color: #1a3a1a;
+        }
+        
+        .goal-item p {
+            color: #4a6a4a;
+            margin: 0 0 8px 0;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background: #e8ece8;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 4px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2d5a2d, #4a8a4a);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            display: flex;
+            justify-content: space-around;
+            padding: 10px 0;
+            border-top: 1px solid #e0ece0;
+        }
+        
+        .bottom-nav a {
+            text-decoration: none;
+            color: #4a6a4a;
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }
+        
+        .bottom-nav a.active {
+            background: #2d5a2d;
+            color: white;
+        }
+        
+        .bottom-nav .nav-create {
+            background: #2d5a2d;
+            color: white;
+        }
+    </style>
+</body>
+</html>
